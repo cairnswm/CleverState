@@ -6,22 +6,22 @@ class objectStore  {
 
     constructor(initialState) {
         this._Store = new DeepProxy({ state: initialState }, this.handler(this.onChange));
-        // this.showChange = (target, path, value, receiver) => {
-        //     console.log('set', path.join('.'), '=', JSON.stringify(value));
-        // }
         this._Store.onChange = (target, path, value, receiver) => this.onShowChange(target, path, value, receiver);
-    }
-    onChange (target, path, value, receiver) {        
-        //console.log('set 2', path.join('.'), '=', JSON.stringify(value));
+        this.storeid = 1;
+        this.subscribers = [];
     }
     onShowChange (target, path, value, receiver) {        
-        console.log('SHOW CHANGE', path.join('.'), '=', JSON.stringify(value));
+        let p = [];
+        this.subscribers.forEach((sub) => {
+          if (sub.name.indexOf(path.join('.')) === 0) {
+            p.push(sub.func(target, path, value, receiver));
+          }
+        }); 
+        return Promise.all(p);
     }
     
     handler (onChange) { return {
         set(target, path, value, receiver) {
-            //onChange(target, path, value, receiver)                
-            //console.log('set', path.join('.'), '=', JSON.stringify(value));
         },
     
         deleteProperty(target, path) {
@@ -33,6 +33,36 @@ class objectStore  {
     get state() {
         return this._Store.state;
     }
+    subscribe(item, fn, id) {
+        if (!fn) {
+          fn = item;
+          item = "All";
+        }
+        if (!this.subscribers.find(f => f.func === fn)) {
+          if (!id) {
+            id = this.storeid++;
+          }
+          this.subscribers.push({ "name": item, "func" : fn, id: id });
+          //console.log(this.subscribers)
+          return id;
+        } else {
+          console.log("Function already added")
+        }
+    }
+    unsubscribe(fn) {
+        console.log("Removing ",fn)
+        let newsubscribers;
+        if (typeof fn === "function") {
+          newsubscribers = this.subscribers.filter(function (f) {
+            return f.func !== fn;
+          });
+        } else {
+          newsubscribers = this.subscribers.filter(function (f) {
+            return f.id !== fn;
+          });
+        }
+        this.subscribers = newsubscribers
+      }
 }
 
 function getStore() {
@@ -44,6 +74,7 @@ function createStore(initialState) {
     store.onChange = (target, path, value, receiver) => {
         console.log("onChange")
     }
+    state = store.state;
     return store;
 }
 
@@ -51,4 +82,4 @@ function storeUpdated(target, path, value, receiver) {
     console.log('set', path.join('.'), '=', JSON.stringify(value), "in" , target, "by", receiver);
 }
 
-module.exports = { createStore, store, getStore };
+module.exports = { createStore, getStore };

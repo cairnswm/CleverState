@@ -1,17 +1,25 @@
-let state = require("./store4");
+let liveState = require("./store4");
 
-let store = state.createStore({ name: "William", age: "51" })
-//console.log(store);
-//store.list("Created:");
+let store = liveState.createStore({ name: "William", age: "51" })
 
-let store2 = state.store;
-//console.log("==========2==========")
-//console.log(store);
+let f1 = store.subscribe("state.age",(target, path, value, receiver) => {        
+    console.log('Subscriber:', path.join('.'), '=', JSON.stringify(value));
+});
+let f2 = store.subscribe("state.age",(target, path, value, receiver) => {        
+    console.log('Another Subscriber:', path.join('.'), '=', JSON.stringify(value));
+});
+let f3 = store.subscribe("state.surname",(target, path, value, receiver) => {        
+    console.log('Changeing surname:', path.join('.'), '=', JSON.stringify(value));
+});
 store.state.surname = "Cairns"
-//store.list("Changed");
 
-let st = state.getStore();
-//console.log("Store.state",st.state);
-//st.list("Child");
+let st = liveState.getStore();
 
+st.state.age = 51;
 st.state.age = 52;
+
+store.unsubscribe(f1);
+
+
+store.state.surname = "Cairns 2"
+st.state.age = 53;
