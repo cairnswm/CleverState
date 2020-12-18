@@ -3,7 +3,6 @@ const { DeepProxy } = require("./proxied.js")
 let store
 
 class objectStore  {
-
     constructor(initialState) {
         this._Store = new DeepProxy({ state: initialState }, this.handler(this.onChange));
         this._Store.onChange = (target, path, value, receiver) => this.onShowChange(target, path, value, receiver);
@@ -13,17 +12,19 @@ class objectStore  {
     onShowChange (target, path, value, receiver) {        
         let p = [];
         this.subscribers.forEach((sub) => {
-          if (sub.name.indexOf(path.join('.')) === 0) {
+          if (path.join('.').indexOf(sub.name) === 0) {
             p.push(sub.func(target, path, value, receiver));
           }
         }); 
         return Promise.all(p);
     }
+    replaceState(newState) {
+      this._Store.state = {...newState}
+    }
     
     handler (onChange) { return {
         set(target, path, value, receiver) {
         },
-    
         deleteProperty(target, path) {
             console.log('delete', path.join('.'));
         }

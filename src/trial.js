@@ -1,15 +1,33 @@
-const s = require("./store");
-const c = require("./page");
+let CleverStore = require("./CleverState");
+
+let store = CleverStore.createStore({ name: "William", age: "51" })
+
+let f1 = store.subscribe("state.age",(target, path, value, receiver) => {        
+    console.log('Subscriber:', path.join('.'), '=', JSON.stringify(value));
+});
+
+let f3 = store.subscribe("state",(target, path, value, receiver) => {        
+    console.log('Changeing state:', path.join('.'), '=', JSON.stringify(value));
+});
+store.state.surname = "Cairns"
+
+//store.state.person = { name: "Yolande", age: "50" }
+
+store.replaceState({ name: "Yolande", age: "50" })
 
 
-const store = s.createState({ name: "William", age: 51 })
 
 
-store.subscribe((state) => { console.log("Subscriber 1", state)});
-store.subscribe((state) => { console.log("Subscriber 2", state)});
-store.setState( {...store.state, surname: "Cairns" });
+let store2 = CleverStore.getStore();
+let f2 = store2.subscribe("state.age",(target, path, value, receiver) => {        
+    console.log('Another Subscriber:', path.join('.'), '=', JSON.stringify(value));
+});
 
-const child = c.DisplayStore();
-store.subscribe((state) => { console.log("Subscriber 3", state)});
+store2.state.age = 51;
+store2.state.age = 52;
 
-store.setState( {...store.state, middleName: "Morgan" });
+store.unsubscribe(f1);
+
+
+store.state.surname = "Cairns 2"
+store2.state.age = 53;

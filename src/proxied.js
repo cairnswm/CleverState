@@ -13,12 +13,7 @@ class DeepProxy {
             self: this,
             set(target, key, value, receiver) {
                 if (typeof value === 'function') {
-                    //defineProperty(target,value)
-                    //console.log("this",this, typeof this);
-                    //console.log("self",this.self, typeof this.self);
                     this.self._handler.onChange = value
-                    
-                    //console.log("====",this.self, typeof this.self);
                 } else {
                     if (typeof value === 'object') {
                         value = dp.proxify(value, [...path, key]);
@@ -51,7 +46,6 @@ class DeepProxy {
 
     unproxy(obj, key) {
         if (this._preproxy.has(obj[key])) {
-            // console.log('unproxy',key);
             obj[key] = this._preproxy.get(obj[key]);
             this._preproxy.delete(obj[key]);
         }
@@ -76,33 +70,4 @@ class DeepProxy {
     }
 }
 
-// TEST DeepProxy
-
-
-let obj = {
-    //foo: 'baz',
-}
-
-
-let proxied = new DeepProxy(obj, {
-    onChange() { console.log("Inside"); },
-    set(target, path, value, receiver) {
-        console.log('set', path.join('.'), '=', JSON.stringify(value), "in" , target, "by", receiver);
-    },
-
-    deleteProperty(target, path) {
-        console.log('delete', path.join('.'));
-    }
-});
-
-// console.log(proxied);
-// proxied.onChange = () => { console.log("Out") }
-// proxied.foo = 'bar';
-// proxied.deep = {}
-// proxied.deep.blue = 'sea';
-// let store = proxied.deep;
-// store.dark = "dungeon";
-//delete proxied.foo;
-//delete proxied.deep; // triggers delete on 'deep' but not 'deep.blue'
-
-module.exports = { DeepProxy, proxied };
+module.exports = { DeepProxy };
